@@ -1,7 +1,7 @@
 import csv
 import subprocess
 
-cust_url="https://XYZ123.nonamesec.io"
+cust_url="https://XYZ123.noname.io"
 jwt="PUT YOUR JWT HERE"
 
 # Function to build curl command
