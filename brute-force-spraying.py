@@ -41,9 +41,11 @@ def tryBrute():
             }
             print("sending payload to url: " + url)
             print("setting the authstring to: " + authString)
-            data = {'sender': "PATRICK", 'receiver': userAndPass, 'message': 'We did it! Idan'}
+            data = {
+    "username" : "fjjjjjdddfff",
+    "password" : "gggg"}
 
-            response = requests.request("POST", url, data=data, headers=headers)
+            response = requests.request("POST", url, headers=headers, json=data)
             #if response.status_code == 200:
             #    print(usr + ":" + pwd)
             print(response)
