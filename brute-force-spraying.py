@@ -4,6 +4,7 @@ from base64 import b64encode
 # this script takes in a userlist and pwlist and 
 # bruteforces an API with 
 # basic authentication headers
+# it also includes a dynamic body payload
 
 passwordList = []
 userList =[]
@@ -40,7 +41,7 @@ def tryBrute():
             }
             print("sending payload to url: " + url)
             print("setting the authstring to: " + authString)
-            data = {'sender': 'Patrick', 'receiver': 'Idan', 'message': 'We did it!'}
+            data = {'sender': "PATRICK", 'receiver': userAndPass, 'message': 'We did it! Idan'}
 
             response = requests.request("POST", url, data=data, headers=headers)
             #if response.status_code == 200:
