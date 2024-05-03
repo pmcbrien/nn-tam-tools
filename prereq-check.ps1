@@ -41,6 +41,7 @@ If ( $PackagesFound.Values -notcontains $False) {
     Write-Host "`nError: MS VC++ Not found. Please install learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist"
 } 
 
+Write-Host "`nCheck for existing Noname Global Module installed on IIS"
 
 # List all installed IIS Global Modules and check for existing Noname-related modules
 $modules = Get-WebGlobalModule 
@@ -58,7 +59,4 @@ Write-Host "`nYour current IIS Version is"
 
 # Get and display the current IIS version from the registry
 get-itemproperty HKLM:\SOFTWARE\Microsoft\InetStp\  | select setupstring,versionstring 
-Write-Host "`nCheck for existing Noname Global Module installed on IIS"
 
-# Output a message indicating that script execution has completed
-Write-Host "`nScript execution completed."
