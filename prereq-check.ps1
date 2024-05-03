@@ -34,11 +34,11 @@ $Architecture = "x64"
 # Check if all required Visual C++ Redistributable packages are found
 If ( $PackagesFound.Values -notcontains $False) {
     # If all required packages are found, indicate that installation can proceed
-    Write-Host "Success: All required versions of Microsoft Visual C++ were found and Noname can be installed."
+    Write-Host "`nSuccess: All required versions of Microsoft Visual C++ were found and Noname can be installed."
     $PackagesFound  # Output the hash table for further review
 } Else {
     # If any required package is missing, do nothing (could be enhanced to add error handling)
-    "Errorc MS VC++ Not found. Please install https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist" | Out-Host
+    Write-Host "`nError: MS VC++ Not found. Please install learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist"
 } 
 # Output a message indicating the start of the check for IIS version and sites
 Write-Host "`nCheck IIS Version Information as noname requires IIS 10"
