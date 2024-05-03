@@ -45,7 +45,7 @@ If ( $PackagesFound.Values -notcontains $False) {
     $PackagesFound  # Output the hash table for further review
 } Else {
     # If any required package is missing, do nothing (could be enhanced to add error handling)
-    "ErrorcMS VC++ Not found. Please install https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist" | Out-Host
+    "Errorc MS VC++ Not found. Please install https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist" | Out-Host
  } 
 
 
