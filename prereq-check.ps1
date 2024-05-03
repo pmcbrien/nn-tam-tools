@@ -1,4 +1,4 @@
- # Script to check for required Microsoft Visual C++ Redistributable packages,
+  # Script to check for required Microsoft Visual C++ Redistributable packages,
 # IIS version and modules, and to provide guidance for Noname installation.
 # Author: Patrick McBrien
 
@@ -21,28 +21,26 @@ $Architecture = "x64"
     # Get the display name of each package
     $CurDisplayName = $_.GetValue("DisplayName")
     # Check if the display name matches the expected pattern for Visual C++ Redistributable
-    if( $CurDisplayName -match "^Microsoft Visual C\+\+\D*(?<Year>(\d|-){4,9}).*Redistributable.*") {
+    if($CurDisplayName -match "^Microsoft Visual C\+\+\D*(?<Year>(\d|-){4,9}).*Redistributable.*") {
         # Extract the year and architecture from the display name
         $Year = $Matches.Year
         [Void] ($CurDisplayName -match "(?<Arch>(x86|x64))")
         $Architecture = $Matches.Arch
-        
         # Update the hash table to indicate the package was found
         $PackagesFound[ '' + $Year + $Architecture ] = $True
     }
 }
 # Check if all required Visual C++ Redistributable packages are found
-If ( $PackagesFound.Values -notcontains $False) {
+If ($PackagesFound.Values -notcontains $False ) {
     # If all required packages are found, indicate that installation can proceed
-    Write-Host "`nSuccess: All required versions of Microsoft Visual C++ were found and Noname can be installed."
+    Write-Host "`nSuccess: All required versions of Microsoft Visual C++ were found and the VC runtime prereq has been satisfied."
     $PackagesFound  # Output the hash table for further review
 } Else {
     # If any required package is missing, do nothing (could be enhanced to add error handling)
-    Write-Host "`nError: MS VC++ Not found. Please install https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist"
+    Write-Host "`nError: MS VC++ prereq Not found. Please install https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist"
 } 
 
 Write-Host "`nCheck for existing Noname Global Module installed on IIS"
-
 # List all installed IIS Global Modules and check for existing Noname-related modules
 $modules = Get-WebGlobalModule 
 foreach ($module in $modules) {
@@ -54,11 +52,11 @@ foreach ($module in $modules) {
     }
 }
 
- # Output a message indicating the start of the check for IIS version and sites
+# Output a message indicating the start of the check for IIS version and sites
 Write-Host "`nCheck IIS Version Information as noname requires IIS 10"
 Write-Host "Your current IIS Version is"
-
 # Get and display the current IIS version from the registry
 get-itemproperty HKLM:\SOFTWARE\Microsoft\InetStp\  | select setupstring,versionstring 
 
+ 
  
