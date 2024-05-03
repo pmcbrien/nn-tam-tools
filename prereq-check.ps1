@@ -2,9 +2,6 @@
 # IIS version and modules, and to provide guidance for Noname installation.
 # Author: Patrick McBrien
 
-# Import the WebAdministration module for IIS management
-Import-Module WebAdministration
-
 # Output a message indicating the start of the check for Visual C++ Redistributable packages
 Write-Host "`nCheck for Visual C++ Redistributable packages"
 # Initialize a hash table to track whether specific Visual C++ Redistributable packages are found
