@@ -1,4 +1,4 @@
- # Script to check for required Microsoft Visual C++ Redistributable packages,
+# Script to check for required Microsoft Visual C++ Redistributable packages,
 # IIS version and modules, and to provide guidance for Noname installation.
 # Author: Patrick McBrien
 
