@@ -50,6 +50,7 @@ foreach ($module in $modules) {
     If ($module.Name -match "Noname") {
         Write-Host "`n Notice: found a currently installed Noname Global IIS Module. You may wish to uninstall this if this is a brand new installation."
         Write-Host "  - Module Name: $($module.Name)"
+        Write-Host "  - Module Image: $($module.Image)"
     }
 }
 
