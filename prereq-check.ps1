@@ -45,7 +45,7 @@ If ( $PackagesFound.Values -notcontains $False) {
     $PackagesFound  # Output the hash table for further review
 } Else {
     # If any required package is missing, do nothing (could be enhanced to add error handling)
-    "Errorc MS VC++ Not found. Please install https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist" | Out-Host
+    "ErrorcMS VC++ Not found. Please install https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist" | Out-Host
  } 
 
 
@@ -56,7 +56,7 @@ Write-Host "`nYour current IIS Version is"
 
 # Get and display the current IIS version from the registry
 get-itemproperty HKLM:\SOFTWARE\Microsoft\InetStp\  | select setupstring,versionstring 
-
+Write-Host "`nChecking for existing Noname Global Module installed on IIS"
 # List all installed IIS Global Modules and check for existing Noname-related modules
 $modules = Get-WebGlobalModule 
 foreach ($module in $modules) {
