@@ -1,4 +1,4 @@
-# Script to check for required Microsoft Visual C++ Redistributable packages,
+ # Script to check for required Microsoft Visual C++ Redistributable packages,
 # IIS version and modules, and to provide guidance for Noname installation.
 # Author: Patrick McBrien
 
@@ -38,7 +38,7 @@ If ( $PackagesFound.Values -notcontains $False) {
     $PackagesFound  # Output the hash table for further review
 } Else {
     # If any required package is missing, do nothing (could be enhanced to add error handling)
-    Write-Host "`nError: MS VC++ Not found. Please install learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist"
+    Write-Host "`nError: MS VC++ Not found. Please install https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist"
 } 
 
 Write-Host "`nCheck for existing Noname Global Module installed on IIS"
@@ -48,15 +48,16 @@ $modules = Get-WebGlobalModule
 foreach ($module in $modules) {
     # If a Noname-related module is found, warn the user about potential conflicts
     If ($module.Name -match "Noname") {
-        Write-Host "`nWe found a currently installed Global IIS Module that is related to Noname. You may want to uninstall this if this is a new installation."
+        Write-Host "`n Notice: found a currently installed Noname Global IIS Module. You may wish to uninstall this if this is a brand new installation."
         Write-Host "  - Module Name: $($module.Name)"
     }
 }
 
  # Output a message indicating the start of the check for IIS version and sites
 Write-Host "`nCheck IIS Version Information as noname requires IIS 10"
-Write-Host "`nYour current IIS Version is"
+Write-Host "Your current IIS Version is"
 
 # Get and display the current IIS version from the registry
 get-itemproperty HKLM:\SOFTWARE\Microsoft\InetStp\  | select setupstring,versionstring 
 
+ 
