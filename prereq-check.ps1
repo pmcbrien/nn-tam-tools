@@ -40,13 +40,8 @@ If ( $PackagesFound.Values -notcontains $False) {
     # If any required package is missing, do nothing (could be enhanced to add error handling)
     Write-Host "`nError: MS VC++ Not found. Please install learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist"
 } 
-# Output a message indicating the start of the check for IIS version and sites
-Write-Host "`nCheck IIS Version Information as noname requires IIS 10"
-Write-Host "`nYour current IIS Version is"
 
-# Get and display the current IIS version from the registry
-get-itemproperty HKLM:\SOFTWARE\Microsoft\InetStp\  | select setupstring,versionstring 
-Write-Host "`nCheck for existing Noname Global Module installed on IIS"
+
 # List all installed IIS Global Modules and check for existing Noname-related modules
 $modules = Get-WebGlobalModule 
 foreach ($module in $modules) {
@@ -56,6 +51,14 @@ foreach ($module in $modules) {
         Write-Host "  - Module Name: $($module.Name)"
     }
 }
+
+ # Output a message indicating the start of the check for IIS version and sites
+Write-Host "`nCheck IIS Version Information as noname requires IIS 10"
+Write-Host "`nYour current IIS Version is"
+
+# Get and display the current IIS version from the registry
+get-itemproperty HKLM:\SOFTWARE\Microsoft\InetStp\  | select setupstring,versionstring 
+Write-Host "`nCheck for existing Noname Global Module installed on IIS"
+
 # Output a message indicating that script execution has completed
 Write-Host "`nScript execution completed."
- 
