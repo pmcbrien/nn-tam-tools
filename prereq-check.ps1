@@ -1,4 +1,4 @@
-# Script to check for required Microsoft Visual C++ Redistributable packages,
+ # Script to check for required Microsoft Visual C++ Redistributable packages,
 # IIS version and modules, and to provide guidance for Noname installation.
 # Author: Patrick McBrien
 
@@ -45,7 +45,9 @@ If ( $PackagesFound.Values -notcontains $False) {
     $PackagesFound  # Output the hash table for further review
 } Else {
     # If any required package is missing, do nothing (could be enhanced to add error handling)
-}
+    "ErrorcMS VC++ Not found. Please install https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist" | Out-Host
+ } 
+
 
 # Output a message indicating the start of the check for IIS version and sites
 Write-Host "`nChecking IIS version and sites."
@@ -67,3 +69,4 @@ foreach ($module in $modules) {
 
 # Output a message indicating that script execution has completed
 Write-Host "`nScript execution completed."
+ 
