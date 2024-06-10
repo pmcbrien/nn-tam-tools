@@ -1,3 +1,5 @@
+#mitmdump -q -v --set block_global=false -s parseheaders.py 
+
 def response(flow):
     print("")
     print("="*50)
