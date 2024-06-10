@@ -1,4 +1,3 @@
-#mitmdump -q -v --set block_global=false -s parseheaders.py 
 def response(flow):
     print("\n\n")
     print("="*50)
@@ -9,7 +8,7 @@ def response(flow):
     for k, v in flow.request.headers.items():
         print("%-20s: %s" % (k.upper(), v))
     
-    print("----- Request Body: ----- ")
+    print("\n----- Request Body: ----- ")
     print(flow.request.content)
 
     print("\n-----" + "Response headers: -----")
@@ -17,5 +16,5 @@ def response(flow):
         print("%-20s: %s" % (k.upper(), v))
         #print("-"*5 + "request headers:")
 
-    print("----- Response Body:")
+    print("\n----- Response Body: -----")
     print(flow.response.content)
