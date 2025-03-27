@@ -20,7 +20,8 @@ TAGS_API_URL = f"{HOST}/api/v4/tags"
 FINDINGS_API_URL = f"{HOST}/api/v4/findings"
 LOG_FILE = "tagging_log.csv"
 DRY_RUN = False
-PAGE_LIMIT = 500
+PAGE_LIMIT = 10  # Fetch 10 findings at a time
+HOURS_AGO = 2400  # Default is 2400 hours ago (last 100 days), change as needed
 
 headers = {
     "Authorization": f"Bearer {BEARER_TOKEN}",
@@ -30,11 +31,11 @@ headers = {
 
 # --- Helpers ---
 def get_last_day_finding_params():
+    # Don't include `offset` here since it will be dynamically set in the fetch function
     return {
         "sortDesc": "true",
         "limit": PAGE_LIMIT,
-        "offset": 0,
-        "hoursAgo": 24,
+        "hoursAgo": HOURS_AGO,  # Use the variable HOURS_AGO
         "returnFields": [
             "id", "title", "url", "typeId", "apiId", "module", "host", "path", "method",
             "resourceGroupName", "status", "severity", "owaspTags", "complianceFrameworkTags",
@@ -45,37 +46,49 @@ def get_last_day_finding_params():
     }
 
 def fetch_all_paginated(url, headers, limit=PAGE_LIMIT, extra_params=None):
-    offset = 0
     all_items = []
+    offset = 0  # Start at the first offset
+
     while True:
         params = {"limit": limit, "offset": offset}
         if extra_params:
             params.update(extra_params)
-        response = requests.get(url, headers=headers, params=params)
+        
         try:
+            response = requests.get(url, headers=headers, params=params)
+            response.raise_for_status()  # Raise HTTPError for bad responses
             data = response.json()
             items = data.get("entities", data if isinstance(data, list) else [])
-            more = data.get("moreEntities", False)
+            more = data.get("moreEntities", False)  # Check if more results exist
+        except requests.exceptions.RequestException as e:
+            print(f"❌ HTTP request failed: {e}")
+            break
         except Exception as e:
             print(f"❌ Failed to parse JSON: {e}")
             break
+
         if not items:
+            break  # No more items, stop the loop
+
+        all_items.extend(items)  # Add the current batch of items
+        offset += limit  # Increment offset to fetch the next page of results
+
+        if not more:  # If no more entities, exit loop
             break
-        all_items.extend(items)
-        offset += limit
-        if not more:
-            break
+
     return all_items
 
 # --- Load tags ---
 print("📥 Fetching existing tags...")
-response = requests.get(TAGS_API_URL, headers=headers)
-if response.status_code != 200:
-    print(f"❌ Failed to fetch tags: {response.status_code} - {response.text}")
+try:
+    response = requests.get(TAGS_API_URL, headers=headers)
+    response.raise_for_status()  # Raise HTTPError for bad responses
+    existing_tags = response.json()
+    tag_lookup = {tag['name'].lower(): tag['id'] for tag in existing_tags}
+    print(f"✅ Loaded {len(tag_lookup)} tags.\n")
+except requests.exceptions.RequestException as e:
+    print(f"❌ Failed to fetch tags: {e}")
     exit(1)
-existing_tags = response.json()
-tag_lookup = {tag['name'].lower(): tag['id'] for tag in existing_tags}
-print(f"✅ Loaded {len(tag_lookup)} tags.\n")
 
 # --- Load CSV mappings ---
 policy_to_objectives = {}
@@ -101,14 +114,15 @@ for objectives in policy_to_objectives.values():
                 print(f"🔎 DRY RUN: Would create tag: {obj}")
                 tag_lookup[key] = f"simulated-{key}"
             else:
-                payload = {"name": obj, "type": "objective"}
-                r = requests.post(TAGS_API_URL, headers=headers, json=payload)
-                if r.status_code == 201:
+                try:
+                    payload = {"name": obj, "type": "objective"}
+                    r = requests.post(TAGS_API_URL, headers=headers, json=payload)
+                    r.raise_for_status()  # Raise HTTPError for bad responses
                     tag = r.json()
                     tag_lookup[key] = tag['id']
                     print(f"✅ Created tag: {obj} (ID: {tag['id']})")
-                else:
-                    print(f"❌ Failed to create tag {obj}: {r.status_code} - {r.text}")
+                except requests.exceptions.RequestException as e:
+                    print(f"❌ Failed to create tag {obj}: {e}")
 
 # --- Fetch findings ---
 print("📥 Fetching findings from the last 24 hours...")
@@ -131,17 +145,24 @@ for finding in findings:
         tag_ids = [tag_lookup[o.lower()] for o in objectives if o.lower() in tag_lookup]
         updated_tags = list(existing_tags.union(tag_ids))
 
+        # Skip the update if the tag is already applied
+        if set(updated_tags) == existing_tags:
+            print(f"🔄 No update required for finding {finding_id} (tags already applied).")
+            log_entries.append([f"Finding-{finding_id}", "No Update", ",".join(objectives)])
+            continue
+
         if DRY_RUN:
             print(f"🔎 DRY RUN: Would PATCH finding {finding_id} with tags: {updated_tags}")
             log_entries.append([f"Finding-{finding_id}", "Would Patch Finding", ",".join(objectives)])
         else:
             patch_url = f"{FINDINGS_API_URL}/{finding_id}/tags"
-            r = requests.patch(patch_url, headers=headers, json={"tagIds": updated_tags})
-            if r.status_code == 200:
+            try:
+                r = requests.patch(patch_url, headers=headers, json={"tagIds": updated_tags})
+                r.raise_for_status()  # Raise HTTPError for bad responses
                 print(f"✅ Patched finding {finding_id}")
                 log_entries.append([f"Finding-{finding_id}", "Patched Finding", ",".join(objectives)])
-            else:
-                print(f"❌ Failed to patch finding {finding_id}: {r.status_code}")
+            except requests.exceptions.RequestException as e:
+                print(f"❌ Failed to patch finding {finding_id}: {e}")
                 log_entries.append([f"Finding-{finding_id}", "Patch Failed", ""])
 
 # --- Write audit log ---
