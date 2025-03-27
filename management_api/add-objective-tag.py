@@ -12,6 +12,8 @@ from config import BEARER_TOKEN, HOST, CSV_FILE
 #   HOST = "https://YOURCUSTOMER.nonamesec.com" #replace with your tenant hostname
 #   CSV_FILE = "MY.csv" #the csv file that contains your objectives and findings mapping
 
+#    FORMAT FOR YOUR CSV FILE. 
+#    Posture,Weak Authentication Method - default,MyTag
 #
 #  DO NOT SHARE OR UPLOAD your config.py PUBILICY. That would be BAD
 #
