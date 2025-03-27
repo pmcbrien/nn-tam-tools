@@ -2,10 +2,20 @@ import csv
 import json
 import requests
 from datetime import datetime, timedelta
-from config import BEARER_TOKEN, HOST
+from config import BEARER_TOKEN, HOST, CSV_FILE
 
-# --- Configuration ---
-CSV_FILE = "mappings-mar18.csv"
+# --- NOTICE ---
+# YOU MUST CREATE A config.py in this folder with
+
+
+#   BEARER_TOKEN = "Your_Bearer_Token"  # Replace with actual token
+#   HOST = "https://YOURCUSTOMER.nonamesec.com" #replace with your tenant hostname
+#   CSV_FILE = "MY.csv" #the csv file that contains your objectives and findings mapping
+
+#
+#  DO NOT SHARE OR UPLOAD your config.py PUBILICY. That would be BAD
+#
+
 TAGS_API_URL = f"{HOST}/api/v4/tags"
 FINDINGS_API_URL = f"{HOST}/api/v4/findings"
 LOG_FILE = "tagging_log.csv"
