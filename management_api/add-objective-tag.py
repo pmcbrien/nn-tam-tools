@@ -13,18 +13,19 @@ from config import BEARER_TOKEN, HOST, CSV_FILE
 #   CSV_FILE = "MY.csv" #the csv file that contains your objectives and findings mapping
 
 #    FORMAT FOR YOUR CSV FILE. 
+#    
+#    Module, Title, Tag
 #    Posture,Weak Authentication Method - default,MyTag
-#
-#  DO NOT SHARE OR UPLOAD your config.py PUBILICY. That would be BAD
+#    
+#    DO NOT SHARE OR UPLOAD your config.py or csv file PUBILICY. That would be BAD
 #
 
+DRY_RUN = False
+PAGE_LIMIT = 10  # Fetch 10 findings at a time so we dont overload the management API
+HOURS_AGO = 2400  # Default is 2400 hours ago (last 100 days), change as needed
 TAGS_API_URL = f"{HOST}/api/v4/tags"
 FINDINGS_API_URL = f"{HOST}/api/v4/findings"
 LOG_FILE = "tagging_log.csv"
-DRY_RUN = False
-PAGE_LIMIT = 10  # Fetch 10 findings at a time
-HOURS_AGO = 2400  # Default is 2400 hours ago (last 100 days), change as needed
-
 headers = {
     "Authorization": f"Bearer {BEARER_TOKEN}",
     "Accept": "application/json",
@@ -127,7 +128,7 @@ for objectives in policy_to_objectives.values():
                     print(f"❌ Failed to create tag {obj}: {e}")
 
 # --- Fetch findings ---
-print("📥 Fetching findings from the last 24 hours...")
+print(f"📥 Fetching incidents from the last {HOURS_AGO} hours...")
 finding_filter = get_last_day_finding_params()
 findings = fetch_all_paginated(FINDINGS_API_URL, headers, extra_params=finding_filter)
 findings_by_id = {f['id']: f for f in findings if isinstance(f, dict)}
