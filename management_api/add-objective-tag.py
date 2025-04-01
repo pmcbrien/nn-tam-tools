@@ -6,12 +6,9 @@ from config import BEARER_TOKEN, HOST, CSV_FILE
 
 # --- NOTICE ---
 # YOU MUST CREATE A config.py in this folder with
-
-
 #   BEARER_TOKEN = "Your_Bearer_Token"  # Replace with actual token
 #   HOST = "https://YOURCUSTOMER.nonamesec.com" #replace with your tenant hostname
 #   CSV_FILE = "MY.csv" #the csv file that contains your objectives and findings mapping
-
 #    FORMAT FOR YOUR CSV FILE. 
 #    
 #    Module, Title, Tag
@@ -22,10 +19,11 @@ from config import BEARER_TOKEN, HOST, CSV_FILE
 
 DRY_RUN = False
 PAGE_LIMIT = 10  # Fetch 10 findings at a time so we dont overload the management API
-HOURS_AGO = 2400  # Default is 2400 hours ago (last 100 days), change as needed
-TAGS_API_URL = f"{HOST}/api/v4/tags"
-FINDINGS_API_URL = f"{HOST}/api/v4/findings"
-LOG_FILE = "tagging_log.csv"
+HOURS_AGO = 300  # Default is 2400 hours ago (last 100 days), change as needed
+TAGS_API_URL = f"{HOST}/api/v4/tags" #this is the tags api
+FINDINGS_API_URL = f"{HOST}/api/v4/findings" # this is the findings api
+LOG_FILE = "tagging_log.csv" #log gets over written so we dont fill drive
+
 headers = {
     "Authorization": f"Bearer {BEARER_TOKEN}",
     "Accept": "application/json",
@@ -128,7 +126,7 @@ for objectives in policy_to_objectives.values():
                     print(f"❌ Failed to create tag {obj}: {e}")
 
 # --- Fetch findings ---
-print(f"📥 Fetching incidents from the last {HOURS_AGO} hours...")
+print(f"📥 Fetching posture findings from the last {HOURS_AGO} hours...")
 finding_filter = get_last_day_finding_params()
 findings = fetch_all_paginated(FINDINGS_API_URL, headers, extra_params=finding_filter)
 findings_by_id = {f['id']: f for f in findings if isinstance(f, dict)}
