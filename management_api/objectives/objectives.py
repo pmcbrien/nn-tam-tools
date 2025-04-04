@@ -1,15 +1,58 @@
+import os
+import sys
+import fcntl
+import atexit
 import csv
 import json
 import requests
 from datetime import datetime, timedelta
-from config import BEARER_TOKEN, HOST, CSV_FILE
+from config import BEARER_TOKEN, HOST, CSV_FILE, DRY_RUN, LOCK_FILE, PAGE_LIMIT, HOURS_AGO, TAGS_API_URL, FINDINGS_API_URL, LOG_FILE
 
-DRY_RUN = False
-PAGE_LIMIT = 10
-HOURS_AGO = 2400
-TAGS_API_URL = f"{HOST}/api/v4/tags"
-FINDINGS_API_URL = f"{HOST}/api/v4/findings"
-LOG_FILE = "tagging_log.csv"
+#READ THIS: you must create config.py
+
+# 🔐 Security
+# config.py 
+#BEARER_TOKEN = "YOUR BEARER TOKEN"  # Replace with actual token
+#HOST = "https://mytenantname.REDACTED.com"
+
+# 📁 Files#
+#CSV_FILE = "objectives-040325.csv"         # Input mapping file
+#LOG_FILE = "tagging_log.csv"               # Output audit log
+#LOCK_FILE = '/tmp/tagging_script.lock'     # Lock file to prevent duplicate runs
+
+# 🛠️ Runtime settings
+#DRY_RUN = False                            # True = simulation mode; no changes will be made
+#PAGE_LIMIT = 10                            # Pagination size for API
+#HOURS_AGO = 2400                           # How far back to look (e.g., 100 days = 2400 hours)
+
+# 🌐 API endpoints
+#TAGS_API_URL = f"{HOST}/api/v4/tags"
+#FINDINGS_API_URL = f"{HOST}/api/v4/findings"
+
+#usage 
+
+#python objectives.py
+
+# --- Prevent multiple instances 
+def acquire_lock():
+    lock_file = open(LOCK_FILE, 'w')
+    try:
+        fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except BlockingIOError:
+        print("⚠️ Another instance is already running. Exiting.")
+        sys.exit(0)
+
+    def release_lock():
+        try:
+            fcntl.flock(lock_file.fileno(), fcntl.LOCK_UN)
+            lock_file.close()
+            os.remove(LOCK_FILE)
+        except Exception as e:
+            print(f"⚠️ Failed to release lock: {e}")
+
+    atexit.register(release_lock)
+
+acquire_lock()
 
 headers = {
     "Authorization": f"Bearer {BEARER_TOKEN}",
@@ -120,6 +163,22 @@ print(f"✅ Retrieved {len(findings)} recent findings.\n")
 
 # --- Tag findings ---
 log_entries = []
+
+def log_action(status, finding_id, title, module, host, path, existing_tags, api_tag_ids, new_tag_ids, updated_tags):
+    timestamp = datetime.utcnow().isoformat()
+    log_entries.append([
+        timestamp,
+        finding_id,
+        title,
+        module,
+        f"{host}{path}",
+        "; ".join([tag_reverse_lookup.get(t, t) for t in existing_tags]),
+        "; ".join([tag_reverse_lookup.get(t, t) for t in api_tag_ids]),
+        "; ".join([tag_reverse_lookup.get(t, t) for t in new_tag_ids]),
+        "; ".join([tag_reverse_lookup.get(t, t) for t in updated_tags]),
+        status
+    ])
+
 print("🏷️ Tagging matching findings (only replacing API- tags)...")
 
 for finding in findings:
@@ -134,14 +193,15 @@ for finding in findings:
         objectives = policy_to_objectives[title]
         new_tag_ids = [tag_lookup[o.upper()] for o in objectives if o.upper() in tag_lookup]
 
-        # Extract API- tags
         api_tag_ids = {tid for tid in existing_tags if tag_reverse_lookup.get(tid, "").startswith("API-")}
         non_api_tag_ids = existing_tags - api_tag_ids
         updated_tags = list(non_api_tag_ids.union(new_tag_ids))
 
-        if set(updated_tags) == existing_tags:
+        existing_api_tag_names = {tag_reverse_lookup.get(tid) for tid in api_tag_ids}
+        desired_api_tag_names = {o.upper() for o in objectives}
+        if existing_api_tag_names == desired_api_tag_names and existing_tags == set(updated_tags):
             print(f"🔄 No update required for finding {finding_id} (API- tags already match).")
-            log_entries.append([f"Finding-{finding_id}", "No Update", ",".join(objectives)])
+            log_action("No Update", finding_id, title, module, host, path, existing_tags, api_tag_ids, new_tag_ids, updated_tags)
             continue
 
         if DRY_RUN:
@@ -154,29 +214,31 @@ for finding in findings:
             print(f"    • New API- Tags: {[tag_reverse_lookup.get(t, t) for t in new_tag_ids]}")
             print(f"    • Final Tags: {[tag_reverse_lookup.get(t, t) for t in updated_tags]}")
             print("------------------------------------------------------------")
-            log_entries.append([f"Finding-{finding_id}", "Would Replace API- Tags", ",".join(objectives)])
+            log_action("Would Replace API- Tags", finding_id, title, module, host, path, existing_tags, api_tag_ids, new_tag_ids, updated_tags)
         else:
-            patch_url = f"{FINDINGS_API_URL}/{finding_id}/tags"
+            put_url = f"{FINDINGS_API_URL}/{finding_id}/tags"
             try:
-                r = requests.patch(patch_url, headers=headers, json={"tagIds": updated_tags})
+                r = requests.put(put_url, headers=headers, json={"tagIds": updated_tags})
                 r.raise_for_status()
                 print(f"✅ Updated Finding ID: {finding_id}")
                 print(f"    • Title: {title}")
                 print(f"    • Final Tags: {[tag_reverse_lookup.get(t, t) for t in updated_tags]}")
                 print("------------------------------------------------------------")
-                log_entries.append([f"Finding-{finding_id}", "Replaced API- Tags", ",".join(objectives)])
+                log_action("Replaced API- Tags", finding_id, title, module, host, path, existing_tags, api_tag_ids, new_tag_ids, updated_tags)
             except requests.exceptions.RequestException as e:
-                print(f"❌ Failed to patch finding {finding_id}: {e}")
-                log_entries.append([f"Finding-{finding_id}", "Patch Failed", ""])
+                print(f"❌ Failed to update finding {finding_id}: {e}")
+                log_action("PUT Failed", finding_id, title, module, host, path, existing_tags, api_tag_ids, new_tag_ids, updated_tags)
 
 # --- Write audit log ---
 with open(LOG_FILE, mode="w", newline="") as f:
     writer = csv.writer(f)
-    writer.writerow(["Policy/Item", "Status", "Objectives"])
+    writer.writerow([
+        "Timestamp", "Finding ID", "Title", "Module", "Host/Path",
+        "Existing Tags", "API- Tags Replaced", "New API- Tags", "Final Tags", "Status"
+    ])
     writer.writerows(log_entries)
 
 print("\n✅ Complete!")
 if DRY_RUN:
     print("🚫 DRY RUN mode — no changes were made.")
 print(f"📄 Log saved to: {LOG_FILE}")
-
