@@ -33,7 +33,8 @@ from config import BEARER_TOKEN, HOST, CSV_FILE, DRY_RUN, LOCK_FILE, PAGE_LIMIT,
 
 #python objectives.py
 
-# --- Prevent multiple instances 
+# --- Prevent multiple instances import os
+
 def acquire_lock():
     lock_file = open(LOCK_FILE, 'w')
     try:
@@ -96,6 +97,7 @@ def fetch_all_paginated(url, headers, limit=PAGE_LIMIT, extra_params=None):
         if not items:
             break
         all_items.extend(items)
+        print(". loaded records")
         offset += limit
         if not more:
             break
@@ -195,10 +197,12 @@ for finding in findings:
 
         api_tag_ids = {tid for tid in existing_tags if tag_reverse_lookup.get(tid, "").startswith("API-")}
         non_api_tag_ids = existing_tags - api_tag_ids
-        updated_tags = list(non_api_tag_ids.union(new_tag_ids))
+        updated_tags = sorted(set(non_api_tag_ids.union(new_tag_ids)))
 
-        existing_api_tag_names = {tag_reverse_lookup.get(tid) for tid in api_tag_ids}
+        # FIX: Normalize case and avoid None in comparison
+        existing_api_tag_names = {tag_reverse_lookup.get(tid, "").upper() for tid in api_tag_ids if tid in tag_reverse_lookup}
         desired_api_tag_names = {o.upper() for o in objectives}
+
         if existing_api_tag_names == desired_api_tag_names and existing_tags == set(updated_tags):
             print(f"🔄 No update required for finding {finding_id} (API- tags already match).")
             log_action("No Update", finding_id, title, module, host, path, existing_tags, api_tag_ids, new_tag_ids, updated_tags)
