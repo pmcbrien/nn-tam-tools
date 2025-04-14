@@ -8,7 +8,8 @@ agent.instrument(app=app)
 # Simulated in-memory database
 users = {
     "admin": {"password": "admin123", "role": "admin"},
-    "user1": {"password": "password", "role": "user"}
+    "user1": {"password": "password", "role": "user"},
+    "user2": {"password": "password", "role": "user"}
 }
 
 tokens = {}  # Insecure token handling
@@ -19,16 +20,41 @@ accounts = {
         "balance": 1000.0,
         "transactions": [],
         "credit_card_number": "4111111111111111",
-        "ssn":"040-12-1234",
-        "bday":"01/01/2020"
+        "ssn": "040-12-1234",
+        "bday": "01/01/2020"
+    },
+    "654321": {
+        "owner": "user2",
+        "balance": 5000.0,
+        "transactions": [],
+        "credit_card_number": "5555555555554444",
+        "ssn": "123-45-6789",
+        "bday": "12/12/1990"
+    },
+    "789012": {
+        "owner": "admin",
+        "balance": 99999.0,
+        "transactions": [],
+        "credit_card_number": "378282246310005",
+        "ssn": "999-99-9999",
+        "bday": "03/03/1980"
     }
 }
 
-# 1. Broken Object Level Authorization (BOLA)
+# 1. Broken Object Level Authorization (BOLA) - FIXED
 @app.route('/accounts/<account_id>', methods=['GET'])
 def get_account(account_id):
-    # No user check, any user can access any account
-    return jsonify(accounts.get(account_id, {"error": "Not found"}))
+    token = request.headers.get("Authorization")
+    user = tokens.get(token)
+
+    account = accounts.get(account_id)
+    if not account:
+        return jsonify({"error": "Account not found"}), 404
+
+    if account["owner"] != user:
+        return jsonify({"error": "Unauthorized access"}), 403
+
+    return jsonify(account)
 
 # 2. Broken Authentication
 @app.route('/login', methods=['POST'])
