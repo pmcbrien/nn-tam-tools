@@ -17,7 +17,10 @@ accounts = {
     "123456": {
         "owner": "user1",
         "balance": 1000.0,
-        "transactions": []
+        "transactions": [],
+        "credit_card_number": "4111111111111111",
+        "ssn":"040-12-1234",
+        "bday":"01/01/2020"
     }
 }
 
