@@ -1,7 +1,7 @@
 #this script saves all issues into json files
 
 offset=0
-domain='https://pandg.nonamesec.com'
+domain='https://xyz.nonamesec.com'
 bearertoken='eyXXXXX.eyXXX.DOH'
 maxissues=5000
 
