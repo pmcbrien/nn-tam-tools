@@ -1,0 +1,233 @@
+{
+  "info": {
+    "name": "OWASP API Security Top 10 Demo",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. BOLA - Get Account",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:5000/accounts/123456",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "accounts",
+            "123456"
+          ]
+        }
+      }
+    },
+    {
+      "name": "2. Broken Authentication - Login",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"username\": \"user1\", \"password\": \"password\"}"
+        },
+        "url": {
+          "raw": "http://localhost:5000/login",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "login"
+          ]
+        }
+      }
+    },
+    {
+      "name": "3. Excessive Data Exposure - List Users",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:5000/users",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "users"
+          ]
+        }
+      }
+    },
+    {
+      "name": "4. Lack of Rate Limiting - Spam",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:5000/spam",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "spam"
+          ]
+        }
+      }
+    },
+    {
+      "name": "5. Broken Function Level Auth - Delete All Accounts",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:5000/admin/delete_all",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "admin",
+            "delete_all"
+          ]
+        }
+      }
+    },
+    {
+      "name": "6. Mass Assignment - Update User",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"username\": \"user1\", \"role\": \"admin\"}"
+        },
+        "url": {
+          "raw": "http://localhost:5000/update_user",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "update_user"
+          ]
+        }
+      }
+    },
+    {
+      "name": "7. Security Misconfiguration - Debug Command",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"cmd\": \"echo debug\"}"
+        },
+        "url": {
+          "raw": "http://localhost:5000/debug",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "debug"
+          ]
+        }
+      }
+    },
+    {
+      "name": "8. Injection - Search",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:5000/search?q=' OR '1'='1",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "search"
+          ],
+          "query": [
+            {
+              "key": "q",
+              "value": "' OR '1'='1"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "9. Improper Asset Management - Old Endpoint",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:5000/old-api/users",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "old-api",
+            "users"
+          ]
+        }
+      }
+    },
+    {
+      "name": "10. Unsafe 3rd Party - Proxy Request",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"url\": \"http://example.com\"}"
+        },
+        "url": {
+          "raw": "http://localhost:5000/proxy",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "5000",
+          "path": [
+            "proxy"
+          ]
+        }
+      }
+    }
+  ]
+}
